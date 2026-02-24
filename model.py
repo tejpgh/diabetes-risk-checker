@@ -34,7 +34,7 @@ print("\nTraining set size:", X_train.shape)
 print("Testing set size:", X_test.shape)
 
 # Build and train the model
-model = RandomForestClassifier(n_estimators=100, random_state=42)
+model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
 print("\nTraining the model...")
 model.fit(X_train, y_train)
 print("Training done!")

@@ -137,18 +137,87 @@ if st.button("Check My Risk 🔍"):
     probability = model.predict_proba(input_data)[0]
     risk_percentage = probability[1] * 100
 
+    # Count how many symptoms user has
+    symptoms = [
+        yes_no(polyuria), yes_no(polydipsia), yes_no(sudden_weight_loss),
+        yes_no(weakness), yes_no(polyphagia), yes_no(genital_thrush),
+        yes_no(visual_blurring), yes_no(itching), yes_no(irritability),
+        yes_no(delayed_healing), yes_no(partial_paresis), yes_no(muscle_stiffness),
+        yes_no(alopecia), yes_no(obesity)
+    ]
+    symptom_count = sum(symptoms)
+
+    # Collect which symptoms they have for explanation
+    symptom_names = []
+    if yes_no(polyuria): symptom_names.append("Frequent urination")
+    if yes_no(polydipsia): symptom_names.append("Excessive thirst")
+    if yes_no(sudden_weight_loss): symptom_names.append("Sudden weight loss")
+    if yes_no(weakness): symptom_names.append("Unusual weakness or fatigue")
+    if yes_no(polyphagia): symptom_names.append("Excessive hunger")
+    if yes_no(genital_thrush): symptom_names.append("Recurring fungal infections")
+    if yes_no(visual_blurring): symptom_names.append("Blurry vision")
+    if yes_no(itching): symptom_names.append("Unusual itching")
+    if yes_no(irritability): symptom_names.append("Unusual irritability")
+    if yes_no(delayed_healing): symptom_names.append("Slow wound healing")
+    if yes_no(partial_paresis): symptom_names.append("Numbness or tingling")
+    if yes_no(muscle_stiffness): symptom_names.append("Muscle stiffness")
+    if yes_no(alopecia): symptom_names.append("Unusual hair loss")
+    if yes_no(obesity): symptom_names.append("Overweight or obese")
+
+    # Adjust risk based on symptom count
+    if symptom_count == 0:
+        risk_percentage = min(risk_percentage, 20)
+    elif symptom_count == 1:
+        risk_percentage = min(risk_percentage, 40)
+    elif symptom_count == 2:
+        risk_percentage = min(risk_percentage, 60)
+
     st.subheader("📊 Your Results")
 
     # Risk meter
     st.write(f"**Your Diabetes Risk Score: {risk_percentage:.1f}%**")
     st.progress(int(risk_percentage))
 
-    if risk_percentage >= 70:
+    if risk_percentage >= 80:
         st.error("🔴 HIGH Risk — Please see a doctor as soon as possible!")
-    elif risk_percentage >= 40:
+    elif risk_percentage >= 60:
         st.warning("🟡 MODERATE Risk — We recommend getting tested soon")
     else:
         st.success("🟢 LOW Risk — Keep maintaining a healthy lifestyle!")
+    # Explain why
+    st.subheader("📋 Why did you get this score?")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write(f"**Your age:** {age} years")
+        st.write(f"**Your gender:** {gender}")
+        st.write(f"**Number of symptoms:** {symptom_count} out of 14")
+    
+    with col2:
+        if age >= 45:
+            st.write("⚠️ Age above 45 increases diabetes risk")
+        if gender == "Male":
+            st.write("⚠️ Males are slightly more at risk")
+        if yes_no(obesity):
+            st.write("⚠️ Being overweight increases risk significantly")
+
+    if symptom_count > 0:
+        st.write("**Symptoms you reported:**")
+        for symptom in symptom_names:
+            st.write(f"- ⚠️ {symptom}")
+        
+        # Explain the two most important symptoms
+        if yes_no(polyuria) and yes_no(polydipsia):
+            st.warning("🔴 Frequent urination AND excessive thirst together are the two strongest warning signs of diabetes!")
+        elif yes_no(polyuria):
+            st.info("ℹ️ Frequent urination alone can have many causes but is worth monitoring")
+        elif yes_no(polydipsia):
+            st.info("ℹ️ Excessive thirst alone can have many causes but is worth monitoring")
+    else:
+        st.write("✅ You reported no symptoms which is a good sign!")
+        if age >= 45:
+            st.write("However your age puts you in a higher risk group — we still recommend an annual blood sugar test!")
 
     # Next steps
     st.subheader("👣 What Should You Do Next?")
